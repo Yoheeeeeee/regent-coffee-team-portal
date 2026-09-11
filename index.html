@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Regent Coffee — Team Portal</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #1C3028; min-height: 100vh; }
+
+/* LOCK */
+#lock { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 24px; }
+#lock h1 { font-size: 28px; font-weight: 300; color: #F5F0E8; text-align: center; margin-bottom: 8px; }
+#lock p { font-size: 12px; color: #C8B99A; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 48px; }
+#pw { display: block; width: 100%; max-width: 280px; padding: 18px; font-size: 20px; text-align: center; letter-spacing: 0.2em; border: 2px solid rgba(255,255,255,0.2); border-radius: 14px; background: rgba(255,255,255,0.08); color: #F5F0E8; outline: none; margin-bottom: 14px; -webkit-appearance: none; }
+#pw:focus { border-color: #C8B99A; }
+#unlock-btn { display: block; width: 100%; max-width: 280px; padding: 18px; font-size: 16px; font-weight: 600; background: #C8B99A; color: #1C3028; border: none; border-radius: 14px; cursor: pointer; -webkit-appearance: none; }
+#unlock-btn:active { background: #b0a488; }
+#err { color: #E07070; font-size: 14px; margin-top: 14px; min-height: 20px; text-align: center; }
+
+/* APP */
+#app { display: none; background: #F5F0E8; min-height: 100vh; }
+
+.top-bar { background: #1C3028; padding: 50px 20px 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+.top-bar h2 { font-size: 22px; font-weight: 300; color: #F5F0E8; }
+.top-bar button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; color: #C8B99A; font-size: 13px; cursor: pointer; -webkit-appearance: none; }
+
+.filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: #EAE3D6; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.filters::-webkit-scrollbar { display: none; }
+.filters button { flex-shrink: 0; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 500; border: 1.5px solid rgba(0,0,0,0.1); background: #fff; color: #444; cursor: pointer; -webkit-appearance: none; }
+.filters button.on { background: #1C3028; color: #F5F0E8; border-color: #1C3028; }
+
+.list { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.card { background: #fff; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: none; width: 100%; text-align: left; -webkit-appearance: none; }
+.card:active { background: #EAE3D6; }
+.cid { font-size: 11px; font-weight: 600; color: #999; min-width: 52px; }
+.cinfo { flex: 1; }
+.ctitle { font-size: 14px; font-weight: 500; color: #1a1a1a; line-height: 1.35; margin-bottom: 5px; }
+.cmeta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cscope { font-size: 11px; color: #999; }
+.arr { color: #ccc; font-size: 20px; }
+
+.badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.bp { background: #E1F5EE; color: #085041; }
+.bf { background: #FAECE7; color: #712B13; }
+.bt { background: #EAF3DE; color: #27500A; }
+.bs { background: #FAEEDA; color: #633806; }
+.bo { background: #E6F1FB; color: #0C447C; }
+
+/* DETAIL */
+#detail { display: none; background: #F5F0E8; min-height: 100vh; }
+.dbar { background: #1C3028; padding: 50px 16px 16px; display: flex; align-items: flex-start; gap: 12px; position: sticky; top: 0; z-index: 5; }
+.dbar button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; width: 40px; height: 40px; font-size: 20px; color: #F5F0E8; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; -webkit-appearance: none; }
+.dbar-info { flex: 1; }
+.did { font-size: 10px; color: #C8B99A; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+.dtitle { font-size: 18px; font-weight: 400; color: #F5F0E8; line-height: 1.3; }
+
+.dbody { padding: 20px 16px 60px; }
+.dmeta { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.dscope { font-size: 12px; color: #999; }
+
+.sec { margin-bottom: 26px; }
+.sec-title { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #2E5041; padding-bottom: 7px; border-bottom: 1.5px solid #EAE3D6; margin-bottom: 10px; }
+.sec p { font-size: 15px; color: #4A4A4A; line-height: 1.65; }
+
+ul.dlist { list-style: none; }
+ul.dlist li { font-size: 15px; color: #4A4A4A; line-height: 1.55; padding: 9px 0 9px 20px; position: relative; border-bottom: 1px solid #EAE3D6; }
+ul.dlist li:last-child { border-bottom: none; }
+ul.dlist li::before { content: '—'; position: absolute; left: 0; color: #C8B99A; }
+
+table.dtable { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.dtable th { text-align: left; font-size: 11px; font-weight: 600; color: #999; padding: 8px 10px; background: #EAE3D6; }
+table.dtable td { padding: 10px; border-bottom: 1px solid #EAE3D6; color: #4A4A4A; vertical-align: top; }
+
+.box-green { background: #1C3028; color: #F5F0E8; border-radius: 12px; padding: 14px 16px; font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+.box-red { background: #FFF4F0; border-left: 3px solid #C0392B; border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 14px; color: #5A1A1A; line-height: 1.6; }
+.box-blue { background: #F0F5FF; border-left: 3px solid #3B6FD4; border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 14px; color: #1A2E5A; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <h1>Regent Coffee<br>Team Portal</h1>
+  <p>Internal Use Only</p>
+  <input id="pw" type="password" placeholder="passcode" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+  <button id="unlock-btn" onclick="unlock()">Unlock</button>
+  <div id="err"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="top-bar">
+    <h2>Regent Coffee</h2>
+    <button onclick="lockApp()">Lock</button>
+  </div>
+  <div class="filters">
+    <button class="on" onclick="filter('all',this)">All</button>
+    <button onclick="filter('Product',this)">Product</button>
+    <button onclick="filter('Staff',this)">Staff</button>
+    <button onclick="filter('Ops',this)">Ops</button>
+    <button onclick="filter('Facilities',this)">Facilities</button>
+    <button onclick="filter('Training',this)">Training</button>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- DETAIL -->
+<div id="detail">
+  <div class="dbar">
+    <button onclick="back()">←</button>
+    <div class="dbar-info">
+      <div class="did" id="d-id"></div>
+      <div class="dtitle" id="d-title"></div>
+    </div>
+  </div>
+  <div class="dbody" id="d-body"></div>
+</div>
+
+<script>
+const PW = "regent2024";
+
+document.getElementById('pw').addEventListener('keydown', function(e){ if(e.key==='Enter') unlock(); });
+
+function unlock(){
+  var v = document.getElementById('pw').value.trim().toLowerCase();
+  if(v === PW){
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('err').textContent = '';
+    document.getElementById('pw').value = '';
+    renderList(POLICIES);
+  } else {
+    document.getElementById('err').textContent = 'Wrong passcode, try again.';
+    document.getElementById('pw').value = '';
+    document.getElementById('pw').focus();
+  }
+}
+
+function lockApp(){
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('detail').style.display = 'none';
+  document.getElementById('lock').style.display = 'flex';
+}
+
+function filter(cat, el){
+  document.querySelectorAll('.filters button').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  renderList(cat==='all' ? POLICIES : POLICIES.filter(function(p){ return p.cat===cat; }));
+}
+
+function renderList(list){
+  document.getElementById('list').innerHTML = list.map(function(p){
+    return '<button class="card" onclick="openDetail(\''+p.id+'\')">'+
+      '<div class="cid">'+p.id+'</div>'+
+      '<div class="cinfo">'+
+        '<div class="ctitle">'+p.title+(p.ver?' <span style="font-size:11px;color:#999;font-weight:400">'+p.ver+'</span>':'')+'</div>'+
+        '<div class="cmeta"><span class="badge '+p.badge+'">'+p.cat+'</span><span class="cscope">'+p.scope+'</span></div>'+
+      '</div>'+
+      '<div class="arr">›</div>'+
+    '</button>';
+  }).join('');
+}
+
+function openDetail(id){
+  var p = POLICIES.find(function(x){ return x.id===id; });
+  if(!p) return;
+  document.getElementById('d-id').textContent = p.id;
+  document.getElementById('d-title').textContent = p.title;
+  document.getElementById('d-body').innerHTML =
+    '<div class="dmeta"><span class="badge '+p.badge+'">'+p.cat+'</span><span class="dscope">'+p.scope+'</span>'+(p.ver?'<span class="dscope">'+p.ver+'</span>':'')+'</div>'+
+    p.html;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('detail').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function back(){
+  document.getElementById('detail').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+var POLICIES = [
+  {id:"POL-001",title:"Retail Bean Purchase Policy",cat:"Product",badge:"bp",scope:"In-shop",html:`
+    <div class="sec"><div class="sec-title">Complimentary Brew with Bean Purchase</div>
+    <p>Customers who purchase retail coffee beans receive one complimentary pour-over from the same tier.</p><br>
+    <table class="dtable"><thead><tr><th>Bean Tier</th><th>Complimentary Brew</th></tr></thead><tbody>
+    <tr><td>Tier 1</td><td>Tier 1 pour-over</td></tr>
+    <tr><td>Tier 2</td><td>Tier 2 pour-over</td></tr>
+    <tr><td>Tier 3</td><td>Tier 3 pour-over</td></tr>
+    </tbody></table></div>
+    <div class="sec"><div class="sec-title">Tier Definitions</div><ul class="dlist">
+    <li><strong>Tier 1</strong> — Classic coffees: washed, natural, honey process</li>
+    <li><strong>Tier 2</strong> — Barrel-aged and select anaerobic fermented coffees</li>
+    <li><strong>Tier 3</strong> — Complex processing: co-ferment, yeast ferment, thermo shock, mossto</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Top Unique Tier</div>
+    <div class="box-red">No complimentary pour-over with Top Unique purchases. Limited, higher-end coffees — team will be notified when in stock.<br><br><strong>Current Top Unique: Honey Gesha</strong></div></div>
+    <div class="sec"><div class="sec-title">Pour-Over Substitutions</div>
+    <p>If a customer doesn't want to wait, offer an americano or drip coffee instead. Always align with the current menu.</p></div>
+    <div class="sec"><div class="sec-title">Questions?</div><p>If unsure which tier a coffee belongs to, ask the manager.</p></div>`
+  },
+  {id:"POL-002",title:"AC Usage Guidelines",cat:"Facilities",badge:"bf",scope:"Both locations",html:`
+    <div class="sec"><div class="sec-title">Fan Mode</div>
+    <p>Do not use or change the fan mode. It does not improve cooling and may affect system performance.</p><br>
+    <div class="box-green">Leave fan mode on <strong>AUTO</strong> at all times.</div></div>
+    <div class="sec"><div class="sec-title">Thermostat</div>
+    <p>Avoid adjusting unless necessary. Lowering the temperature can overwork the system and is not energy-efficient.</p><br>
+    <div class="box-blue">If you must lower it temporarily:<br>• Reset to scheduled settings afterward<br>• Display should read <strong>"FOLLOWING SCHEDULE"</strong></div></div>
+    <div class="sec"><div class="sec-title">If AC Stops Working</div>
+    <div class="box-red">Turn it off immediately and notify the manager.</div></div>`
+  },
+  {id:"POL-003",title:"Product Sharing & Sampling Guide",cat:"Training",badge:"bt",scope:"Both locations",ver:"v1.1",html:`
+    <div class="sec"><div class="sec-title">Mindset</div>
+    <div class="box-green">We are not salespeople. We are producers.<br>Share. Guide. Don't pressure.</div></div>
+    <div class="sec"><div class="sec-title">When to Sample</div><ul class="dlist">
+    <li>Guest says "this is really good"</li>
+    <li>Guest shows curiosity about how we make things</li>
+    <li>Guest mentions brewing at home</li>
+    <li>Guest is waiting and chatting</li>
+    <li>Regular customers who already trust us</li>
+    <li>Slower hours when you have time to explain</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">A · Pour-Over Pouch</div>
+    <p><strong>How:</strong> Brew one pouch into a carafe and share small portions.</p><br>
+    <div class="box-blue"><strong>Say:</strong> "This is our pour-over pouch. We sift out the fines, so the cup is cleaner."<br><br>If they ask more: removing particles under 300 microns reduces over-extraction, slows oxidation. Estimated shelf life up to 6 months. Stop there.</div></div>
+    <div class="sec"><div class="sec-title">B · Bottle — Liquid Espresso Concentrate</div>
+    <p><strong>How:</strong> Serve a small 1:2 dilution over ice.</p><br>
+    <div class="box-blue"><strong>Say:</strong> "This is our liquid espresso concentrate. We roast, extract, thermo-process, and bottle it in-house."<br><br>Add: extended shelf life at room temp for at least 1 year. Refrigerate immediately once opened.<br><br>Optional: "It's like a coffee base spirit. You can build drinks with it."</div></div>
+    <div class="sec"><div class="sec-title">C · Cold Brew Can</div>
+    <p><strong>How:</strong> Open one chilled can, serve small portions over ice. Use same can throughout shift — refrigerate after opening.</p><br>
+    <div class="box-blue"><strong>Say:</strong> "This is our canned barrel-aged cold brew. Four single-origin barrel-aged coffees. Extended shelf life for at least one year."</div></div>
+    <div class="sec"><div class="sec-title">How to Talk About Process</div>
+    <div class="box-green">"We control everything from green bean to final product."<br><br>If they lean in: "Our barrel aging is sensory-controlled. We monitor aroma development carefully before roasting." Stop there.</div>
+    <p style="margin-top:10px">If they don't lean in — smile and move on.</p></div>
+    <div class="sec"><div class="sec-title">What We Do NOT Share</div>
+    <div class="box-red">Never disclose: exact aging duration · rotation methods · barrel conditioning details · extraction ratios · processing parameters<br><br>We share philosophy, not formulas.</div></div>`
+  },
+  {id:"POL-004",title:"Scheduling & Shift Guidelines",cat:"Staff",badge:"bs",scope:"Both locations",html:`
+    <div class="sec"><div class="sec-title">Changing Availability</div>
+    <p>Submit at least <strong>two weeks in advance</strong>. Scheduling manager will review and approve based on operational needs.</p></div>
+    <div class="sec"><div class="sec-title">Days Off Requests</div><ul class="dlist">
+    <li>Vacation days — at least one month in advance</li>
+    <li>Personal days — two weeks' notice required</li>
+    </ul><p style="margin-top:10px">Approved based on staffing needs, first-come first-served.</p></div>
+    <div class="sec"><div class="sec-title">Shift Swaps</div>
+    <p>Allowed if both parties agree. Must be approved by scheduling manager at least <strong>24 hours before the shift</strong>.</p></div>
+    <div class="sec"><div class="sec-title">Emergency Cover</div>
+    <div class="box-blue">Notify the scheduling manager as soon as possible. Management will coordinate coverage or adjust schedule.</div></div>
+    <div class="sec"><div class="sec-title">Breaks</div><ul class="dlist">
+    <li>Rest and meal breaks must comply with labor laws</li>
+    <li>10-minute rest breaks cannot be stacked with 30-minute meal breaks</li>
+    <li>Take breaks separately to maintain coverage</li>
+    <li>If timing is difficult, check in with shift lead or manager</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">General Compliance</div>
+    <div class="box-red">Stick to your scheduled shifts and approved break times unless cleared by management. Repeated failure may lead to corrective action.</div></div>`
+  },
+  {id:"POL-005",title:"Bottled Concentrate: Thermo-Process & Storage",cat:"Product",badge:"bp",scope:"Both locations",html:`
+    <div class="sec"><div class="sec-title">What Thermo-Processing Means</div>
+    <p>The bottled coffee concentrate is heat-treated after brewing to give it an extended shelf life at room temperature — no preservatives used.</p></div>
+    <div class="sec"><div class="sec-title">Storage Guidelines</div>
+    <table class="dtable"><thead><tr><th>Condition</th><th>Guidance</th></tr></thead><tbody>
+    <tr><td>Unopened</td><td>Room temperature, at least 3 months</td></tr>
+    <tr><td>After opening</td><td>Refrigerate immediately</td></tr>
+    <tr><td>After opening shelf life</td><td>Depends on cleanliness, temperature, and how quickly consumed</td></tr>
+    </tbody></table></div>
+    <div class="sec"><div class="sec-title">What to Tell Customers</div>
+    <div class="box-green">Keep it sealed and cold, and finish it soon after opening for best quality.</div></div>
+    <div class="sec"><div class="sec-title">Product Philosophy</div>
+    <p>Designed to balance safety, convenience, and flavor — keeping the product as clean and minimal as possible.</p></div>`
+  },
+  {id:"POL-006",title:"Virtu Product Receiving Policy",cat:"Ops",badge:"bo",scope:"Both locations",html:`
+    <div class="sec"><div class="sec-title">Counting Delivery</div>
+    <p>Count the <strong>total quantity of all units</strong>. No need to count each product type separately.</p></div>
+    <div class="sec"><div class="sec-title">Checking Expiration Dates</div>
+    <div class="box-red">Check expiration dates <strong>before</strong> the driver hands you the invoice.</div><br>
+    <ul class="dlist">
+    <li>Only accept items at least <strong>one week</strong> from expiration</li>
+    <li>Refuse items expiring within the week and report to manager immediately</li>
+    </ul></div>`
+  },
+  {id:"POL-007",title:"Shift Responsibilities — Cashier & Barista",cat:"Staff",badge:"bs",scope:"Both locations",html:`
+    <div class="sec"><div class="sec-title">Cashier · Opening</div><ul class="dlist">
+    <li>Turn on lights</li>
+    <li>Wake the Curtis Brewer from energy saving mode</li>
+    <li>Set patio furniture</li>
+    <li>Dial in the espresso</li>
+    <li>Put pastries in the pastry case</li>
+    <li>Check the invoice — make sure we received everything</li>
+    <li>Verify day's coffee offerings and update chalkboard if needed</li>
+    <li>Brew Batch Brew</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Cashier · During Shift</div><ul class="dlist">
+    <li>Assist barista with drinks and cleaning</li>
+    <li>Clean espresso machine — check for dust, wipe coffee grounds</li>
+    <li>Clean ice machine and refrigerator daily</li>
+    <li>Restock cups, lids, and supplies continuously</li>
+    <li>Refill syrups — use a new bottle when refilling</li>
+    <li>Stamp retail and pastry bags with store logo</li>
+    <li>Organize milk deliveries — verify invoice and follow FIFO</li>
+    <li>Wipe down tables and scan for trash</li>
+    <li>Monitor trash behind bar and in bathroom; take out as necessary</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Cashier · Closing</div><ul class="dlist">
+    <li>Count and reset drawer</li>
+    <li>Bring in outside furniture</li>
+    <li>Sweep café side of store</li>
+    <li>Unused pastries → fridge; clean pastry case</li>
+    <li>Take out trash</li>
+    <li>Wash apron as needed</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Barista · Opening</div><ul class="dlist">
+    <li>Check dial on espresso</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Barista · During Shift</div><ul class="dlist">
+    <li>Maintain a clean working environment</li>
+    <li>Wipe down machines, fridges, and countertops</li>
+    <li>Restock cups, lids, and supplies continuously</li>
+    <li>Refill syrups — use a new bottle when refilling</li>
+    <li>Stamp retail and pastry bags with store logo</li>
+    <li>Organize milk deliveries — verify invoice and follow FIFO</li>
+    <li>Wipe down tables</li>
+    <li>Monitor trash behind bar and in bathroom; take out as necessary</li>
+    </ul></div>
+    <div class="sec"><div class="sec-title">Barista · Closing</div><ul class="dlist">
+    <li>Close down bar; return syrups to refrigerator</li>
+    <li>Wash all dishes</li>
+    <li>Wipe cold brew tap and tray with clean sanitized towel</li>
+    <li>Reset bar for morning shift</li>
+    <li>Mop café side of store</li>
+    <li>Clean espresso machine — flush machine and clean wands</li>
+    <li>Turn off lights</li>
+    <li>Lock doors</li>
+    <li>Wash apron as needed</li>
+    </ul></div>`
+  }
+];
+</script>
+</body>
+</html>
